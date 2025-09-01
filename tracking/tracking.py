@@ -177,12 +177,20 @@ class Tracker:
         # Get the number of time each team had ball control
         team_1_num_frames = team_ball_control_till_frame[team_ball_control_till_frame == 1].shape[0]
         team_2_num_frames = team_ball_control_till_frame[team_ball_control_till_frame == 2].shape[0]
-        team_1 = team_1_num_frames / (team_1_num_frames + team_2_num_frames)
-        team_2 = team_2_num_frames / (team_1_num_frames + team_2_num_frames)
+        
+        # Kiểm tra để tránh division by zero
+        total_frames = team_1_num_frames + team_2_num_frames
+        if total_frames == 0:
+            # Nếu không có đội nào kiểm soát bóng, hiển thị 0%
+            team_1_percentage = 0.0
+            team_2_percentage = 0.0
+        else:
+            team_1_percentage = team_1_num_frames / total_frames
+            team_2_percentage = team_2_num_frames / total_frames
 
-        cv2.putText(frame, f"Team 1 Ball Control: {team_1 * 100:.2f}%", (1400, 900), cv2.FONT_HERSHEY_SIMPLEX, 1,
+        cv2.putText(frame, f"Team 1 Ball Control: {team_1_percentage * 100:.2f}%", (1400, 900), cv2.FONT_HERSHEY_SIMPLEX, 1,
                     (0, 0, 0), 3)
-        cv2.putText(frame, f"Team 2 Ball Control: {team_2 * 100:.2f}%", (1400, 950), cv2.FONT_HERSHEY_SIMPLEX, 1,
+        cv2.putText(frame, f"Team 2 Ball Control: {team_2_percentage * 100:.2f}%", (1400, 950), cv2.FONT_HERSHEY_SIMPLEX, 1,
                     (0, 0, 0), 3)
 
         return frame
