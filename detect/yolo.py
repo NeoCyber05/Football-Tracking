@@ -19,7 +19,7 @@ def draw_analysis_region(frame, bbox):
     # Vẽ bbox gốc (màu xanh lá)
     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
     
-    # Vẽ vùng phân tích (màu đỏ, fill trong suốt)
+    # Vẽ vùng phân tích
     overlay = frame.copy()
     cv2.rectangle(overlay, (analysis_x1, analysis_y1), (analysis_x2, analysis_y2), (0, 0, 255), -1)
     cv2.addWeighted(overlay, 0.3, frame, 0.7, 0, frame)
