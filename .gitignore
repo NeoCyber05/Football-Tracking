@@ -2,3 +2,13 @@
 my_env
 tracking/weight
 input_video
+weight
+team_to_player/__pycache__
+ball_to_player/__pycache__
+camera_move/__pycache__
+speed_and_dis_cal/__pycache__
+view_minimap/__pycache__
+tracking/__pycache__
+utils/__pycache__
+output_video
+stubs

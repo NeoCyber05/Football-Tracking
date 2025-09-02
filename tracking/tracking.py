@@ -39,9 +39,6 @@ class Tracker:
         
         df_ball_positions = pd.DataFrame(ball_bboxes, columns=['x1', 'y1', 'x2', 'y2'])
 
-        # Nội suy các giá trị bị thiếu
-        # Sử dụng 'cubic' để có đường đi mượt mà, tự nhiên hơn cho quả bóng
-        # Giới hạn chỉ nội suy cho các khoảng trống nhỏ (<= 10 frames)
         df_ball_positions = df_ball_positions.interpolate(method='cubic', limit_direction='both', limit=10)
         
         # Lấp các giá trị còn thiếu ở đầu (nếu có) bằng giá trị hợp lệ đầu tiên
@@ -81,11 +78,6 @@ class Tracker:
 
             # Covert to supervision Detection format
             sv_detections = sv.Detections.from_ultralytics(detection)
-            #
-            # # Convert GoalKeeper to player object
-            # for object_ind, class_id in enumerate(detection_supervision.class_id):
-            #     if cls_names[class_id] == "goalkeeper":
-            #         detection_supervision.class_id[object_ind] = cls_names_inv["player"]
 
             # Track Objects
             tracked_detections = self.tracker.update_with_detections(sv_detections)
@@ -122,51 +114,13 @@ class Tracker:
 
         return tracks
 
-    def _validate_color(self, color):
-        """
-        Validate và convert màu sắc về định dạng OpenCV hợp lệ
-        """
-        try:
-            # Nếu color là None hoặc empty, sử dụng màu mặc định
-            if color is None:
-                return (0, 255, 0)  # Xanh lá mặc định
-            
-            # Nếu là numpy array, convert về tuple
-            if hasattr(color, 'tolist'):
-                color = color.tolist()
-            
-            # Nếu là list hoặc tuple
-            if isinstance(color, (list, tuple)):
-                # Đảm bảo có đúng 3 giá trị
-                if len(color) >= 3:
-                    # Convert về int và clamp giá trị 0-255
-                    # Input color đã là BGR, không cần hoán đổi
-                    b = int(max(0, min(255, color[0])))
-                    g = int(max(0, min(255, color[1]))) 
-                    r = int(max(0, min(255, color[2])))
-                    return (b, g, r)
-                else:
-                    return (0, 255, 0)  # Fallback
-            
-            # Nếu là số đơn (grayscale)
-            if isinstance(color, (int, float)):
-                val = int(max(0, min(255, color)))
-                return (val, val, val)
-            
-            # Fallback cho các trường hợp khác
-            return (0, 255, 0)
-            
-        except Exception as e:
-            print(f"Warning: Color validation failed: {e}, using default green")
-            return (0, 255, 0)
-
     def draw_ellipse(self, frame, bbox, color, track_id=None):
         y2 = int(bbox[3])
         x_center, _ = get_center_of_bbox(bbox)
         width = get_bbox_width(bbox)
 
-        # Validate và convert màu sắc về định dạng đúng
-        validated_color = self._validate_color(color)
+        # Chuyển đổi màu sang định dạng tuple các số nguyên để vẽ
+        draw_color = tuple(map(int, color))
 
         cv2.ellipse(
             frame,
@@ -174,9 +128,9 @@ class Tracker:
             axes=(int(width), int(0.35 * width)),
             angle=0.0,
             startAngle=-45,
-            endAngle=235,
-            color=validated_color,
-            thickness=4, # Tăng độ dày từ 2 lên 4
+            endAngle=240,
+            color=draw_color,
+            thickness=2,  
             lineType=cv2.LINE_4
         )
 
@@ -186,15 +140,14 @@ class Tracker:
         y = int(bbox[1])
         x, _ = get_center_of_bbox(bbox)
 
-        # Validate màu sắc
-        validated_color = self._validate_color(color)
+        draw_color = tuple(map(int, color))
 
         triangle_points = np.array([
             [x, y],
             [x - 10, y - 20],
             [x + 10, y - 20],
         ])
-        cv2.drawContours(frame, [triangle_points], 0, validated_color, cv2.FILLED)
+        cv2.drawContours(frame, [triangle_points], 0, draw_color, cv2.FILLED)
         cv2.drawContours(frame, [triangle_points], 0, (0, 0, 0), 2)
 
         return frame
@@ -221,9 +174,9 @@ class Tracker:
             team_1_percentage = team_1_num_frames / total_frames
             team_2_percentage = team_2_num_frames / total_frames
 
-        cv2.putText(frame, f"Team 1 Ball Control: {team_1_percentage * 100:.2f}%", (1400, 900), cv2.FONT_HERSHEY_DUPLEX, 1,
+        cv2.putText(frame, f"Team A Ball Control: {team_1_percentage * 100:.2f}%", (1400, 900), cv2.FONT_HERSHEY_DUPLEX, 1,
                     (0, 0, 0), 3)
-        cv2.putText(frame, f"Team 2 Ball Control: {team_2_percentage * 100:.2f}%", (1400, 950), cv2.FONT_HERSHEY_DUPLEX, 1,
+        cv2.putText(frame, f"Team B Ball Control: {team_2_percentage * 100:.2f}%", (1400, 950), cv2.FONT_HERSHEY_DUPLEX, 1,
                     (0, 0, 0), 3)
 
         return frame
@@ -240,12 +193,8 @@ class Tracker:
 
             # Draw Players
             for track_id, player in player_dict.items():
-                # Lấy màu đội với fallback
-                color = player.get("team_color", (0, 0, 255))
+                color = player.get("team_color")
                 
-                # Debug: In thông tin màu nếu có vấn đề
-                if frame_num == 0 and track_id <= 3:  # Chỉ debug vài player đầu
-                    print(f"Player {track_id} color: {color}, type: {type(color)}")
                 
                 frame = self.draw_ellipse(frame, player["bbox"], color, track_id)
 
@@ -254,18 +203,17 @@ class Tracker:
 
             # Draw Referee
             for _, referee in referee_dict.items():
-                color = referee.get("team_color", (0, 255, 255)) # Lấy màu từ track, fallback màu vàng
-                frame = self.draw_ellipse(frame, referee["bbox"], color)
+                frame = self.draw_ellipse(frame, referee["bbox"], (0, 255, 0)) # Green
 
             # Draw Goalkeeper
             for track_id, goalkeeper in goalkeeper_dict.items():
-                color = goalkeeper.get("team_color", (255, 0, 255)) # Lấy màu từ track, fallback màu hồng
+                color = goalkeeper.get("team_color")
                 frame = self.draw_ellipse(frame, goalkeeper["bbox"], color, track_id)
 
             # Draw ball
             for _, ball in ball_dict.items():
                 ball_bbox = ball.get("bbox", [])
-                # Bỏ qua việc vẽ bóng nếu tọa độ không hợp lệ (NaN)
+                # Bỏ qua việc vẽ bóng nếu tọa độ không hợp lệ
                 if ball_bbox and not np.isnan(ball_bbox[0]):
                     frame = self.draw_triangle(frame, ball_bbox, (0, 255, 0))
 
