@@ -28,7 +28,6 @@ class Tracker:
                     tracks[object_type][frame_num][track_id]['position'] = position
 
     def interpolate_ball_positions(self, ball_positions):
-        # Lấy ra danh sách các bbox, nếu không có thì dùng list chứa NaN
         ball_bboxes = []
         for x in ball_positions:
             bbox = x.get(1, {}).get('bbox', None)
@@ -39,7 +38,7 @@ class Tracker:
         
         df_ball_positions = pd.DataFrame(ball_bboxes, columns=['x1', 'y1', 'x2', 'y2'])
 
-        df_ball_positions = df_ball_positions.interpolate(method='cubic', limit_direction='both', limit=10)
+        df_ball_positions = df_ball_positions.interpolate(method='cubic', limit_direction='both', limit=5)
         
         # Lấp các giá trị còn thiếu ở đầu (nếu có) bằng giá trị hợp lệ đầu tiên
         df_ball_positions = df_ball_positions.bfill()
