@@ -34,7 +34,7 @@ Enter the path to your football video when prompted. The processed video will be
 
 ## Short video demo
 
-![Football Tracking Demo](demo/demo_0.gif)
+![Football Tracking Demo](demo/demo_01.gif)
 
 
 
