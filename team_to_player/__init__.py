@@ -1,1 +1,1 @@
-from .team_assigner_dbscan import TeamAssignerDBSCAN 
+from .team_to_player import TeamAssigner

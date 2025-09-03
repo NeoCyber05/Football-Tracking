@@ -10,5 +10,6 @@ speed_and_dis_cal/__pycache__
 view_minimap/__pycache__
 tracking/__pycache__
 utils/__pycache__
-output_video
+output_videos
 stubs
+test_videos/__pycache__

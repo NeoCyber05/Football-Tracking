@@ -4,3 +4,4 @@ supervision
 pandas
 scikit-learn
 tqdm
+numpy

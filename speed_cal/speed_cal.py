@@ -57,7 +57,7 @@ class SpeedAndDistance_Estimator():
                         bbox = track_info['bbox']
                         position = get_foot_position(bbox)
                         position = list(position)
-                        position[1] += 40
+                        position[1] += 35
 
                         position = tuple(map(int, position))
                         cv2.putText(frame, f"{speed:.2f} km/h", position, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
