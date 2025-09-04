@@ -63,26 +63,14 @@ class TeamAssigner:
         """
         Learns the two team colors by looking at all players in the first frame.
         """
-        all_player_pixels = []
-        # Collect pixels from all players' torsos
+        player_colors = []
         for _, player_detection in player_detections.items():
             bbox = player_detection["bbox"]
-            player_image = frame[int(bbox[1]):int(bbox[3]), int(bbox[0]):int(bbox[2])]
+            player_color = self.get_player_color(frame, bbox)
+            player_colors.append(player_color)
 
-            # Crop to the torso area (10% to 50% of height)
-            height = player_image.shape[0]
-            if height > 0:
-                top = int(height * 0.10)
-                bottom = int(height * 0.50)
-                torso_image = player_image[top:bottom, :]
-
-                if torso_image.size > 0:
-                    pixels = torso_image.reshape(-1, 3)
-                    all_player_pixels.extend(pixels)
-
-        # Run KMeans on all pixels to find the two main team colors
         kmeans = KMeans(n_clusters=2, init="k-means++", n_init=10, random_state=0)
-        kmeans.fit(all_player_pixels)
+        kmeans.fit(player_colors)
         
         # Save the main KMeans model
         self.kmeans = kmeans

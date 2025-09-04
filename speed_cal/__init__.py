@@ -1,1 +1,1 @@
-from .speed_cal import SpeedAndDistance_Estimator
+from .speed_cal import Speed_Estimator

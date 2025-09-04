@@ -6,7 +6,7 @@ from team_to_player.team_to_player import TeamAssigner
 from ball_to_player import PlayerBallAssigner
 from camera_move import CameraMovementEstimator
 from view_transform import ViewTransformer
-from speed_cal import SpeedAndDistance_Estimator
+from speed_cal import Speed_Estimator
 import time
 import os
 from collections import Counter
@@ -64,9 +64,9 @@ def main():
         print("7. Interpolating ball positions...")
         tracks["ball"] = tracker.interpolate_ball_positions(tracks["ball"])
 
-        print("8. Calculating speed and distance...")
-        speed_and_distance_estimator = SpeedAndDistance_Estimator()
-        speed_and_distance_estimator.add_speed_and_distance_to_tracks(tracks)
+        print("8. Calculating speed ...")
+        speed_estimator = Speed_Estimator()
+        speed_estimator.add_speed_to_tracks(tracks)
 
         print("9. Assigning player teams...")
         team_assigner = TeamAssigner()
@@ -112,8 +112,8 @@ def main():
         print("12. Drawing camera movement...")
         output_video_frames = camera_movement_estimator.draw_camera_movement(output_video_frames, camera_movement_per_frame)
 
-        print("13. Drawing speed and distance...")
-        speed_and_distance_estimator.draw_speed_and_distance(output_video_frames, tracks)
+        print("13. Drawing speed...")
+        speed_estimator.draw_speed(output_video_frames, tracks)
 
         print("14. Saving video...")
         os.makedirs('output_videos', exist_ok=True)

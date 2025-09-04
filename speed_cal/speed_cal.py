@@ -5,12 +5,12 @@ sys.path.append('../')
 from utils import measure_distance, get_foot_position
 
 
-class SpeedAndDistance_Estimator():
+class Speed_Estimator():
     def __init__(self):
         self.frame_window = 5
         self.frame_rate = 24
 
-    def add_speed_and_distance_to_tracks(self, tracks):
+    def add_speed_to_tracks(self, tracks):
         for object, object_tracks in tracks.items():
             if object == "ball" or object == "referees":
                 continue
@@ -28,7 +28,6 @@ class SpeedAndDistance_Estimator():
                     if start_position is None or end_position is None:
                         continue
                     
-                    # Bỏ qua nếu khoảng thời gian bằng 0 để tránh lỗi chia cho 0
                     if last_frame == frame_num:
                         continue
 
@@ -42,7 +41,7 @@ class SpeedAndDistance_Estimator():
                             continue
                         tracks[object][frame_num_batch][track_id]['speed'] = speed_km_per_hour
 
-    def draw_speed_and_distance(self, frames, tracks):
+    def draw_speed(self, frames, tracks):
         output_frames = []
         for frame_num, frame in enumerate(frames):
             for object, object_tracks in tracks.items():
